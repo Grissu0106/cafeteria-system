@@ -19,51 +19,66 @@ class ProductoController extends Controller
 
     public function create()
     {
+        if (auth()->user()->email !== 'admin@cafeteria.com') abort(403, 'No tienes permiso para hacer esto.');
         return view('productos.create');
     }
 
     public function store(Request $request)
-{
-    $request->validate([
-        'nombre' => 'required',
-        'tipo' => 'required',
-        'precio' => 'required|numeric',
-        'stock' => 'required|integer'
-    ]);
+    {
+        if (auth()->user()->email !== 'admin@cafeteria.com') abort(403, 'No tienes permiso para hacer esto.');
 
-    Producto::create($request->all());
+        $request->validate([
+            'nombre' => 'required',
+            'tipo' => 'required',
+            'precio' => 'required|numeric',
+            'stock' => 'required|integer'
+        ]);
 
-    return redirect()->route('productos.index');
-}
+        Producto::create($request->all());
+
+        return redirect()->route('productos.index');
+    }
 
     public function show(Producto $producto)
     {
+        $producto->load('pedidos');
+        
         return view('productos.show', compact('producto'));
     }
 
     public function edit(Producto $producto)
     {
+        if (auth()->user()->email !== 'admin@cafeteria.com') abort(403, 'No tienes permiso para hacer esto.');
         return view('productos.edit', compact('producto'));
     }
 
     public function update(Request $request, Producto $producto)
-{
-    $request->validate([
-        'nombre' => 'required',
-        'tipo' => 'required',
-        'precio' => 'required|numeric',
-        'stock' => 'required|integer'
-    ]);
+    {
+        if (auth()->user()->email !== 'admin@cafeteria.com') abort(403, 'No tienes permiso para hacer esto.');
 
-    $producto->update($request->all());
+        $request->validate([
+            'nombre' => 'required',
+            'tipo' => 'required',
+            'precio' => 'required|numeric',
+            'stock' => 'required|integer'
+        ]);
 
-    return redirect()->route('productos.index');
-}
+        $producto->update($request->all());
+
+        return redirect()->route('productos.index');
+    }
 
     public function destroy(Producto $producto)
     {
+        if (auth()->user()->email !== 'admin@cafeteria.com') abort(403, 'No tienes permiso para hacer esto.');
+        if ($producto->pedidos()->count() > 0) {
+            return redirect()->route('productos.index')
+                ->with('error', 'No se puede eliminar el producto porque tiene pedidos asociados.');
+        }
+
         $producto->delete();
 
-        return redirect()->route('productos.index');
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto eliminado exitosamente.');
     }
 }

@@ -4,10 +4,12 @@
 
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-medium text-gray-800">Productos</h1>
-    <a href="{{ route('productos.create') }}"
-       class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition">
-        + Nuevo Producto
-    </a>
+    @if(auth()->user()->email === 'admin@cafeteria.com')
+        <a href="{{ route('productos.create') }}"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition">
+            + Nuevo Producto
+        </a>
+    @endif
 </div>
 
 <form method="GET" class="mb-4 flex gap-2">
@@ -57,16 +59,22 @@
                     </span>
                 </td>
                 <td class="px-4 py-3 flex gap-3">
-                    <a href="{{ route('productos.edit', $producto) }}"
-                       class="text-yellow-600 hover:underline text-xs">Editar</a>
-                    <form action="{{ route('productos.destroy', $producto) }}" method="POST"
-                          onsubmit="return confirm('¿Eliminar {{ $producto->nombre }}?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-red-500 hover:underline text-xs">
-                            Eliminar
-                        </button>
-                    </form>
+                    <a href="{{ route('productos.show', $producto) }}" 
+                    class="text-blue-600 hover:underline text-xs">Ver</a>
+                    
+                    @if(auth()->user()->email === 'admin@cafeteria.com')
+                        <a href="{{ route('productos.edit', $producto) }}"
+                        class="text-yellow-600 hover:underline text-xs">Editar</a>
+                        
+                        <form action="{{ route('productos.destroy', $producto) }}" method="POST"
+                            onsubmit="return confirm('¿Eliminar {{ $producto->nombre }}?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-500 hover:underline text-xs">
+                                Eliminar
+                            </button>
+                        </form>
+                    @endif
                 </td>
             </tr>
             @empty

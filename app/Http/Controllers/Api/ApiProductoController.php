@@ -19,14 +19,14 @@ class ApiProductoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nombre' => 'required|string',
-            'tipo'   => 'required|string',
-            'precio' => 'required|numeric',
-            'stock'  => 'required|integer',
+        $validated = $request->validate([
+            'nombre' => 'required|string|unique:productos,nombre|max:255',
+            'tipo'   => 'required|string|in:Galleta,Bebida,Bebida caliente,Bebida fría,Snack',
+            'precio' => 'required|numeric|min:0.1',
+            'stock'  => 'required|integer|min:0'
         ]);
 
-        $producto = Producto::create($request->all());
+        $producto = Producto::create($validated);
 
         return response()->json([
             'message' => 'Producto creado.',
@@ -43,14 +43,14 @@ class ApiProductoController extends Controller
 
     public function update(Request $request, Producto $producto)
     {
-        $request->validate([
-            'nombre' => 'required|string',
-            'tipo'   => 'required|string',
-            'precio' => 'required|numeric',
-            'stock'  => 'required|integer',
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:255|unique:productos,nombre,' . $producto->id,
+            'tipo'   => 'required|string|in:Galleta,Bebida,Bebida caliente,Bebida fría,Snack',
+            'precio' => 'required|numeric|min:0.1',
+            'stock'  => 'required|integer|min:0',
         ]);
 
-        $producto->update($request->all());
+        $producto->update($validated);
 
         return response()->json([
             'message' => 'Producto actualizado.',
@@ -60,10 +60,16 @@ class ApiProductoController extends Controller
 
     public function destroy(Producto $producto)
     {
+        if ($producto->pedidos()->count() > 0) {
+            return response()->json([
+                'message' => 'No se puede eliminar el producto porque tiene pedidos asociados.'
+            ], 422);
+        }
+
         $producto->delete();
 
         return response()->json([
-            'message' => 'Producto eliminado.'
+            'message' => 'Producto eliminado exitosamente.'
         ], 200);
     }
 }
